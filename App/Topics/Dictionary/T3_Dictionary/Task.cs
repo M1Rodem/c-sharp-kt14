@@ -1,28 +1,70 @@
-using System.Text.RegularExpressions;
-using static System.Net.Mime.MediaTypeNames;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace App.Topics.Dictionary.T3_Dictionary;
 
-public static class DictionaryTasks’
+public static class DictionaryTasks
 {
     public static System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, int>>
-    TopNWords(string text, int n)
+        TopNWords(string text, int n)
     {
-        string _text = text;
-        string _textLower;
-        int _n = n;
-        int count = 0;
-        System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder();
-
-        if (_text == null || _text == "") throw new ArgumentNullException(nameof(text));
-        if (_n <= 0) throw new ArgumentNullException($"{n}");
-        _textLower = _text.ToLower();
-        for (int i = 0; i < _textLower.Length; i++) 
+        if (string.IsNullOrWhiteSpace(text) || n <= 0)
         {
-            if (char.IsLetterOrDigit(_textLower[i]) == false)
-            {
+            return new List<KeyValuePair<string, int>>();
+        }
 
+        string textLower = text.ToLower();
+
+        Dictionary<string, int> wordCounts = new Dictionary<string, int>();
+
+        StringBuilder currentWord = new StringBuilder();
+
+        for (int i = 0; i < textLower.Length; i++)
+        {
+            char c = textLower[i];
+
+            if (char.IsLetterOrDigit(c))
+            {
+                currentWord.Append(c);
+            }
+            else
+            {
+                if (currentWord.Length > 0)
+                {
+                    string word = currentWord.ToString();
+                    if (wordCounts.ContainsKey(word))
+                    {
+                        wordCounts[word]++;
+                    }
+                    else
+                    {
+                        wordCounts[word] = 1;
+                    }
+                    currentWord.Clear();
+                }
             }
         }
+
+        if (currentWord.Length > 0)
+        {
+            string word = currentWord.ToString();
+            if (wordCounts.ContainsKey(word))
+            {
+                wordCounts[word]++;
+            }
+            else
+            {
+                wordCounts[word] = 1;
+            }
+        }
+        var sortedWords = wordCounts
+            .OrderByDescending(pair => pair.Value)  
+            .ThenBy(pair => pair.Key)    
+            .Take(n)
+            .ToList();
+
+        return sortedWords;
     }
 }
